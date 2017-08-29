@@ -21,7 +21,7 @@ class ApiSpec extends FunSpec with MustMatchers {
     Db.fillWithTestData()
 
     it("should return some accounts") {
-      val payload = ArrayBuffer(AccountPayload(0, User("reach guy"), 1000000),
+      val payload = ArrayBuffer(AccountPayload(0, User("reach guy"), 10000000000L),
                                 AccountPayload(1, User("poor guy"), 10),
                                 AccountPayload(2, User("average guy"), 10000))
       accounts(Input.get("/accounts")).value must ===(payload)
@@ -30,11 +30,11 @@ class ApiSpec extends FunSpec with MustMatchers {
     it("should do transfers") {
       val payload = TransferPayload(0, 1, 10)
       transfer(Input.post("/transfer").withBody[Text.Plain](payload.asJson)).value must ===(
-        TransferResult(AccountPayload(0, User("reach guy"), 1000000 - 10),
+        TransferResult(AccountPayload(0, User("reach guy"), 10000000000L - 10),
                        AccountPayload(1, User("poor guy"), 20)))
 
 
-      account(Input.get("/account/0")).value must === (AccountPayload(0, User("reach guy"), 1000000 - 10))
+      account(Input.get("/account/0")).value must === (AccountPayload(0, User("reach guy"), 10000000000L - 10))
       account(Input.get("/account/1")).value must === (AccountPayload(1, User("poor guy"), 20))
     }
 
@@ -48,6 +48,15 @@ class ApiSpec extends FunSpec with MustMatchers {
       transfer(Input.post("/transfer").withBody[Text.Plain](payload.asJson)).result must ===(
         BadRequest(NotEnoughFunds(30,20))
       )
+    }
+
+    it ("should add new accounts"){
+      val p = NewAccountPayload(User("Nouveau riche"), 9999999999L)
+      val expectedResult = AccountPayload(3, p.user, p.amount)
+
+      postAccounts(Input.post("/account").withBody[Text.Plain](p.asJson)).value must === (expectedResult)
+      account(Input.get(s"/account/${expectedResult.id}")).value must === (expectedResult)
+      accounts(Input.get("/accounts")).value.last must ===(expectedResult)
     }
   }
 

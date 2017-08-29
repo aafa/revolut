@@ -43,3 +43,4 @@ resolvers ++= Seq(
   Resolver.sonatypeRepo("snapshots")
 )
 
+javaOptions in reStart ++= Seq("-XX:+UseConcMarkSweepGC","-Xmx4g", "-Xms1g")
