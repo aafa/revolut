@@ -1,0 +1,4 @@
+- scalacheck property tests
+- wrk load testing
+- api docs ala swagger
+- travis ci
