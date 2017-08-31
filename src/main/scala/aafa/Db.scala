@@ -1,31 +1,39 @@
 package aafa
 
+import java.util.UUID
+
 import scala.collection.concurrent.TrieMap
 import scala.util.Try
 
 object Db {
-  implicit class ReachTrieMap[B](trie: TrieMap[Int, B]) {
-    def add(a: B): Option[B] = trie.put(trie.size, a)
+  type Key = String
+
+  implicit class ReachTrieMap[B](trie: TrieMap[Key, B]) {
+    def add(a: B): (Key, B) = {
+      val k : Key = UUID.randomUUID().toString
+      trie.put(k, a) // we want to put a value in a non-blocking manner
+      (k, a)
+    }
   }
 
   // updated on money transfer
-  private val accounts = TrieMap.empty[Int, Account]
+  private val accounts = TrieMap.empty[Key, Account]
 
   // keep track of all transfers here
-  private val transferLog = TrieMap.empty[Int, Transfer]
+  private val transferLog = TrieMap.empty[Key, Transfer]
 
   def fillWithTestData(): Unit = {
     accounts.clear()
-    accounts add Account(User("reach guy"), 10000000000L)
-    accounts add Account(User("poor guy"), 10)
-    accounts add Account(User("average guy"), 10000)
+    accounts put ("0", Account(User("reach guy"), 10000000000L))
+    accounts put ("1", Account(User("poor guy"), 10))
+    accounts put ("2", Account(User("average guy"), 10000))
   }
 
-  def getAccounts: collection.Map[Int, Account] = accounts.readOnlySnapshot()
+  def getAccounts: collection.Map[Key, Account] = accounts.readOnlySnapshot()
 
   def addAccount(account: Account): AccountPayload = {
-    accounts add account
-    account.asPayload(accounts.size - 1) // performance!
+    (accounts add account) match
+    {case (key: Key, account: Account) => account.asPayload(key)}
   }
 
   def updateAccount(account: AccountPayload): Unit = {

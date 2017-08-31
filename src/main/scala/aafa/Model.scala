@@ -1,5 +1,7 @@
 package aafa
 
+import aafa.Db.Key
+
 import scala.util.{Failure, Success, Try}
 
 
@@ -21,20 +23,20 @@ case class Account(user: User, amount: Long) extends Model {
   // we will use integer money representation $100.00 is 10000; no currency for now
   override def toString: String =
     """%s has $%d.%d""".format(user.name, amount / 100, amount % 100)
-  def asPayload(id: Int): AccountPayload = AccountPayload(id, user, amount)
+  def asPayload(id: Key): AccountPayload = AccountPayload(id, user, amount)
 }
-case class Transfer(from: Int, to: Int, amount: Long) extends Model
+case class Transfer(from: Key, to: Key, amount: Long) extends Model
 
 // payloads
 // we dont want to expose our model out there
 sealed trait Payload
-case class TransferPayload(from: Int, to: Int, amount: Long) extends Payload { // from-to an accountId
+case class TransferPayload(from: Key, to: Key, amount: Long) extends Payload { // from-to an accountId
   def model: Transfer = Transfer(from, to, amount)
 }
 case class TransferResult(from: AccountPayload, to: AccountPayload) extends Payload
 case class NewAccountPayload(user: User, amount: Long) extends Payload {
   def model: Account = Account(user, amount)
 }
-case class AccountPayload(id: Int, user: User, amount: Long) extends Payload {
+case class AccountPayload(id: Key, user: User, amount: Long) extends Payload {
   def model: Account = Account(user, amount)
 }
