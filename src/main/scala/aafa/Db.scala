@@ -43,7 +43,7 @@ object Db {
   def transfer(transferPayload: TransferPayload): Try[TransferResult] = {
     val fromId = transferPayload.from
     val toId   = transferPayload.to
-    for {
+    for { // this `for` scope happen to be quasi-transactional - if not enough funds, no transfer is registered
       from <- accounts(fromId).decrease(transferPayload.amount)
       to = accounts(toId).increase(transferPayload.amount)
 
