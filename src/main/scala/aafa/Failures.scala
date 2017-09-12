@@ -6,3 +6,6 @@ case class NotEnoughFunds(requested: Long, actual: Long) extends FailedResponse 
 }
 
 case object UserNotFound extends FailedResponse
+case object NegativeTransferAmountNotAllowed extends FailedResponse
+case object NegativeAccountAmountNotAllowed extends FailedResponse
+case object SelfTransferNotAllowed extends FailedResponse

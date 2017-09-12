@@ -1,20 +1,15 @@
 import aafa._
 import com.twitter.finagle.http.Status
-import io.finch.{Application, Endpoint, Input}
-import org.scalatest.{FunSpec, MustMatchers}
-import io.finch._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import io.finch.Text.Plain
+import io.finch.{Input, _}
+import org.scalatest.{BeforeAndAfter, FunSpec, MustMatchers}
+import utils._
 
 import scala.collection.mutable.ArrayBuffer
 
-class ApiSpec extends FunSpec with MustMatchers {
-
-  implicit class TestEndpoint[A](e: Endpoint.Result[A]) {
-    def result: Output[A] = e.awaitOutputUnsafe().get
-    def value: A          = e.awaitOutputUnsafe().get.value
-  }
+class ApiSpec extends FunSpec with MustMatchers with BeforeAndAfter {
 
   import aafa.Endpoints._
 
@@ -31,8 +26,9 @@ class ApiSpec extends FunSpec with MustMatchers {
         Account(User("reach guy"), 10000000000L),
       )
 
-      accounts(Input.get("/accounts")).value.map(_.model).toVector.sortBy(_.amount) must ===(
-        payload)
+      val accounts1 = accounts(Input.get("/accounts")).value.map(_.model).toVector.sortBy(_.amount)
+      accounts1.filter(_.user.name == "poor guy") must ===(payload.filter(_.user.name == "poor guy"))
+      accounts1.filter(_.user.name == "average guy") must ===(payload.filter(_.user.name == "average guy"))
     }
 
     it("should do transfers") {
@@ -64,7 +60,7 @@ class ApiSpec extends FunSpec with MustMatchers {
       val p              = NewAccountPayload(User("Nouveau riche"), 9999999999L)
       val expectedResult = Account(p.user, p.amount)
 
-      val accountPayload = postAccounts(Input.post("/account").withBody[Plain](p.asJson)).value
+      val accountPayload = postAccounts.post("/account", p).value
 
       accountPayload.model must ===(expectedResult)
       account(Input.get(s"/account/${accountPayload.id}")).value.model must ===(expectedResult)
@@ -72,6 +68,7 @@ class ApiSpec extends FunSpec with MustMatchers {
         .find(_.user.name == "Nouveau riche")
         .map(_.model).get must ===(expectedResult)
     }
+
   }
 
 }

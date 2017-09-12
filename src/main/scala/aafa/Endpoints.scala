@@ -23,17 +23,19 @@ object Endpoints {
 
   val postAccounts: Endpoint[AccountPayload] =
     post("account" :: jsonBody[NewAccountPayload]) { acc: NewAccountPayload =>
-      Ok(Db.addAccount(acc.model))
+      recover(Db.addAccount(acc.model))
     }
 
   val transfer: Endpoint[TransferResult] =
     post("transfer" :: jsonBody[TransferPayload]) { tr: TransferPayload =>
-      Db.transfer(tr) match {
-        case Success(v)            => Ok(v)
-        case Failure(e: Exception) => BadRequest(e) // to keep unwrapped exception exposed
-        case Failure(e)            => BadRequest(new Exception(e))
-      }
+      recover(Db.transfer(tr))
     }
 
   val all = accounts :+: account :+: postAccounts :+: transfer
+
+  def recover[A](t: Try[A]): Output[A] = t match {
+    case Success(v)            => Ok(v)
+    case Failure(e: Exception) => BadRequest(e) // to keep unwrapped exception exposed
+    case Failure(e)            => BadRequest(new Exception(e))
+  }
 }
