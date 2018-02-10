@@ -1,7 +1,6 @@
 package aafa
 
 import aafa.Db.Key
-import com.twitter.util.{Future, FuturePool}
 import io.finch._
 import io.circe.generic.auto._
 
