@@ -1,6 +1,7 @@
 package aafa
 
 import aafa.Db.Key
+import aafa.core.{Service, WireTransfer}
 import io.finch._
 import io.circe.generic.auto._
 
@@ -9,25 +10,25 @@ import io.finch.circe._
 
 object Endpoints {
   val accounts: Endpoint[Iterable[AccountPayload]] = get("accounts") {
-    Ok(Db.getAccounts.map {
+    Ok(Service.getAccounts.map {
       case (id: Key, account: Account) => account.asPayload(id)
     })
   }
 
   val account: Endpoint[AccountPayload] = get("account" :: path[Key]) { id: Key =>
     Try(
-      Ok(Db.getAccounts(id).asPayload(id))
+      Ok(Service.getAccounts(id).asPayload(id))
     ).getOrElse(NotFound(UserNotFound))
   }
 
   val postAccounts: Endpoint[AccountPayload] =
     post("account" :: jsonBody[NewAccountPayload]) { acc: NewAccountPayload =>
-      recover(Db.addAccount(acc.model))
+      recover(Service.addAccount(acc.model))
     }
 
-  val transfer: Endpoint[TransferResult] =
+  val transfer: Endpoint[WireTransfer.State] =
     post("transfer" :: jsonBody[TransferPayload]) { tr: TransferPayload =>
-      recover(Db.transfer(tr))
+      Service.transfer(tr).map(v => Ok(v))
     }
 
   val all = accounts :+: account :+: postAccounts :+: transfer

@@ -1,13 +1,13 @@
+package aafa
+
 import aafa.Db.Key
 import aafa.Endpoints.transfer
-import aafa._
 import io.circe.generic.auto._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop._
 import org.scalacheck.{Gen, Properties}
 import org.scalatest._
 import org.scalatest.prop._
-import utils._
 
 import scala.util.Random
 

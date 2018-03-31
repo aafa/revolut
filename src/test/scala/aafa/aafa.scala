@@ -1,12 +1,10 @@
-import aafa.Payload
 import io.circe.Encoder
-import io.finch.{Endpoint, Input, Output}
-import io.finch.Text.Plain
-import io.circe.generic.auto._
 import io.circe.syntax._
 import io.finch.Endpoint.Result
+import io.finch.Text.Plain
+import io.finch.{Endpoint, Input, Output}
 
-package object utils {
+package object aafa {
 
   implicit class ReachEndpoint[A](e: Endpoint[A]){
     def post[P <: Payload](path: String, payload: P)(implicit encoder: Encoder[P]): Result[A] = {
